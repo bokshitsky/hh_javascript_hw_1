@@ -3,6 +3,7 @@ import tornado.web
 import tornado.websocket
 
 from tornado.options import define, options, parse_command_line
+
 from json import loads, dumps
 
 define("port", default=8888, help="run on the given port", type=int)
@@ -16,12 +17,13 @@ class IndexHandler(tornado.web.RequestHandler):
 
 
 items = []
-listeners = set()
+listeners = set()   
 class ItemsHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         self.write({"data":items})
         self.finish()
+
 
 
 def informAllListenersExcept(message, exception):
@@ -53,18 +55,15 @@ class UpdateInformer(tornado.websocket.WebSocketHandler):
         self.ws_connection.write_message(dumps(data))
         print("connection started")
 
-
     def on_message(self, message):
         data = loads(message)
         action = ActionsMap[data["method"]]
         action(data)
         informAboutUpdate(exception=self)
-        
-
+    
     def on_close(self, message=None):
         listeners.remove(self)
         print("connection closed")
-
 
 
 class MyStaticFileHandler(tornado.web.StaticFileHandler):

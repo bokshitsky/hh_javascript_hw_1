@@ -46,6 +46,55 @@
         rebuildItemsList()
     }
     
+    
+    inputField.disabled = true;
+    ws.onopen = function() {
+        
+        inputField.addEventListener(
+            "keypress", 
+            function(e){
+                var inputField = e.target;
+                if (e.keyCode === 13 && inputField.value != "") {
+                    e.preventDefault();
+
+                    createNewItem()
+                    inputField.value = "";
+                    i++; 
+                }
+            })
+    
+    
+        list.ondragstart = function(e){
+            var dragListItem = e.target;
+            var startPosition = getDomElementPosition(list, dragListItem)
+            var endPosition = -1;
+
+            dragListItem.style.opacity = '0.3';
+            e.dataTransfer.setData('text/plain', "");
+
+            list.ondragenter= function(e){
+                var curPos = getDomElementPosition(list, dragListItem);
+                var newPos = getDomElementPosition(list, e.target);
+
+                if (newPos >= 0) {
+                    endPosition = newPos
+                    if (newPos > curPos) {
+                        list.insertBefore(dragListItem, e.target.nextSibling);
+                    } else if (newPos < curPos) {
+                        list.insertBefore(dragListItem, e.target);    
+                    }
+                }
+            }
+
+            list.ondragend= function(e) {
+                dragListItem.style.opacity = '';
+                if (endPosition != -1) {swapTwoItems(startPosition, endPosition);}
+            }
+        }
+        
+        inputField.disabled = false;
+    }
+    
     ws.onmessage = function (evt) {
         var data = JSON.parse(evt.data);
         actionsMap[data.method](data); //ACTUALLY WE HAVE ONLY ONE METHOD.
@@ -70,46 +119,4 @@
         list.appendChild(newNode);
     }
     
-    
-    inputField.addEventListener(
-        "keypress", 
-        function(e){
-            var inputField = e.target; //we can either use dataInput variable;
-            if (e.keyCode === 13 && inputField.value != "") {
-                e.preventDefault();
-                
-                createNewItem()
-                inputField.value = "";
-                i++; 
-            }
-        })
-    
-    
-    list.ondragstart = function(e){
-                    var dragListItem = e.target;
-                    var startPosition = getDomElementPosition(list, dragListItem)
-                    var endPosition = -1;
-        
-                    dragListItem.style.opacity = '0.3';
-                    e.dataTransfer.setData('text/plain', "");
-                    
-                    list.ondragenter= function(e){
-                        var curPos = getDomElementPosition(list, dragListItem);
-                        var newPos = getDomElementPosition(list, e.target);
-                        
-                        if (newPos >= 0) {
-                            endPosition = newPos
-                            if (newPos > curPos) {
-                                list.insertBefore(dragListItem, e.target.nextSibling);
-                            } else if (newPos < curPos) {
-                                list.insertBefore(dragListItem, e.target);    
-                            }
-                        }
-                    }
-                    
-                    list.ondragend= function(e) {
-                        dragListItem.style.opacity = '';
-                        if (endPosition != -1) {swapTwoItems(startPosition, endPosition);}
-                    }
-                }
 })();
